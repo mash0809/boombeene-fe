@@ -6,6 +6,7 @@ import BottomSheet from '../components/sheet/BottomSheet'
 import ReportForm from '../components/sheet/ReportForm'
 import StoreDetail from '../components/sheet/StoreDetail'
 import { useNearbyStores } from '../hooks/useNearbyStores'
+import { getCurrentLocation } from '../location/getCurrentLocation'
 import { useLocationStore } from '../store/locationStore'
 import type { Store } from '../types'
 
@@ -18,10 +19,17 @@ export default function MapPage() {
   const { data: stores = [] } = useNearbyStores(lat, lng)
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
-      () => setLocation(37.5665, 126.978, 0),
-    )
+    let cancelled = false
+
+    getCurrentLocation().then(({ lat, lng, accuracy }) => {
+      if (!cancelled) {
+        setLocation(lat, lng, accuracy)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [setLocation])
 
   if (lat === null || lng === null) {
