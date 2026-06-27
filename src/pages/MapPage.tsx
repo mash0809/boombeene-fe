@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import KakaoMap from '../components/map/KakaoMap'
 import StoreMarker from '../components/map/StoreMarker'
 import BottomSheet from '../components/sheet/BottomSheet'
+import ReportForm from '../components/sheet/ReportForm'
 import StoreDetail from '../components/sheet/StoreDetail'
 import { useNearbyStores } from '../hooks/useNearbyStores'
 import { useLocationStore } from '../store/locationStore'
@@ -56,6 +57,20 @@ export default function MapPage() {
       >
         {selectedStore && (
           <StoreDetail store={selectedStore} onReport={() => setShowReport(true)} />
+        )}
+      </BottomSheet>
+      <BottomSheet
+        open={!!selectedStore && showReport}
+        onClose={() => setShowReport(false)}
+      >
+        {selectedStore && (
+          <ReportForm
+            store={selectedStore}
+            onSuccess={() => {
+              setShowReport(false)
+              setSelectedStore(null)
+            }}
+          />
         )}
       </BottomSheet>
     </div>
