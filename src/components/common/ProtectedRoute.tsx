@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { resolveAuthState } from '../../auth/resolveAuthState'
-import { useMe } from '../../hooks/useMe'
+import { useSession } from '../../hooks/useSession'
 import { useAuthStore } from '../../store/authStore'
 
 export default function ProtectedRoute() {
   const setLoggedIn = useAuthStore((s) => s.setLoggedIn)
-  const { data: user, isError, isLoading } = useMe()
+  const { data: user, isError, isLoading } = useSession()
   const authState = resolveAuthState({
     isSessionValid: !!user && !isError,
     isSessionLoading: isLoading,
