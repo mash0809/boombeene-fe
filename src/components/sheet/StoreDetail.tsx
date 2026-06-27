@@ -17,7 +17,7 @@ export default function StoreDetail({ store, onReport }: Props) {
         {store.category === 'RESTAURANT' ? '음식점' : '카페'}
       </p>
       <div className="mb-6 flex items-center gap-2">
-        <span className="text-sm text-gray-600">현재 혼잡도</span>
+        <span className="text-sm text-gray-600">최근 30분간 혼잡도</span>
         <CongestionBadge
           level={congestion?.level ?? null}
           hasData={congestion?.hasData ?? false}

@@ -9,7 +9,7 @@ export function useNearbyStores(
 ) {
   return useQuery({
     queryKey: ['stores', 'nearby', lat, lng, category],
-    queryFn: () => searchNearby({ latitude: lat!, longitude: lng!, radius: 50, category }),
+    queryFn: () => searchNearby({ latitude: lat!, longitude: lng!, radius: 500, category }),
     enabled: lat !== null && lng !== null,
     staleTime: 1000 * 60,
   })
