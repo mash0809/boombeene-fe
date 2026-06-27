@@ -5,11 +5,11 @@ import type { StoreCategory } from '../types'
 export function useNearbyStores(
   lat: number | null,
   lng: number | null,
-  category: StoreCategory = 'RESTAURANT',
+  category: StoreCategory = 'CAFE',
 ) {
   return useQuery({
     queryKey: ['stores', 'nearby', lat, lng, category],
-    queryFn: () => searchNearby({ latitude: lat!, longitude: lng!, radius: 500, category }),
+    queryFn: () => searchNearby({ latitude: lat!, longitude: lng!, radius: 50, category }),
     enabled: lat !== null && lng !== null,
     staleTime: 1000 * 60,
   })
