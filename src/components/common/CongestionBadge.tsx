@@ -19,7 +19,7 @@ interface Props {
 
 export default function CongestionBadge({ level, hasData }: Props) {
   if (!hasData || !level) {
-    return <span className="text-sm text-gray-400">정보 없음</span>
+    return <span className="text-sm text-gray-400">최근 30분간 혼잡도 정보 없음</span>
   }
 
   return (
