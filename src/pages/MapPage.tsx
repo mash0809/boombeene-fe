@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import KakaoMap from '../components/map/KakaoMap'
 import StoreMarker from '../components/map/StoreMarker'
+import BottomSheet from '../components/sheet/BottomSheet'
+import StoreDetail from '../components/sheet/StoreDetail'
 import { useNearbyStores } from '../hooks/useNearbyStores'
 import { useLocationStore } from '../store/locationStore'
 import type { Store } from '../types'
@@ -11,6 +13,7 @@ export default function MapPage() {
   const { lat, lng, setLocation } = useLocationStore()
   const [map, setMap] = useState<kakao.maps.Map | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
+  const [showReport, setShowReport] = useState(false)
   const { data: stores = [] } = useNearbyStores(lat, lng)
 
   useEffect(() => {
@@ -37,9 +40,24 @@ export default function MapPage() {
       <KakaoMap lat={lat} lng={lng} onMapReady={setMap} />
       {map &&
         stores.map((store) => (
-          <StoreMarker key={store.id} map={map} store={store} onClick={setSelectedStore} />
+          <StoreMarker
+            key={store.id}
+            map={map}
+            store={store}
+            onClick={(s) => {
+              setSelectedStore(s)
+              setShowReport(false)
+            }}
+          />
         ))}
-      {selectedStore && <div className="sr-only">{selectedStore.name}</div>}
+      <BottomSheet
+        open={!!selectedStore && !showReport}
+        onClose={() => setSelectedStore(null)}
+      >
+        {selectedStore && (
+          <StoreDetail store={selectedStore} onReport={() => setShowReport(true)} />
+        )}
+      </BottomSheet>
     </div>
   )
 }
