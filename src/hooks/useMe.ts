@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { getMe, getMyPoint } from '../api/users'
 
 export function useMe() {
-  return useQuery({ queryKey: ['users', 'me'], queryFn: getMe })
+  return useQuery({ queryKey: ['users', 'me'], queryFn: getMe, retry: false })
 }
 
 export function useMyPoint() {
-  return useQuery({ queryKey: ['users', 'me', 'point'], queryFn: getMyPoint })
+  return useQuery({ queryKey: ['users', 'me', 'point'], queryFn: getMyPoint, retry: false })
 }
