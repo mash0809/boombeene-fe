@@ -18,6 +18,13 @@ export default function MyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-sm p-6">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="mb-4 text-sm font-medium text-blue-500 hover:underline"
+        >
+          ← 지도
+        </button>
         <h1 className="mb-6 text-2xl font-bold">마이페이지</h1>
         <div className="mb-4 rounded-2xl bg-white p-4 shadow">
           <p className="mb-1 text-sm text-gray-500">닉네임</p>
