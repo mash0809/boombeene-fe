@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import CurrentLocationMarker from '../components/map/CurrentLocationMarker'
+import { getMapCenterLocation } from '../components/map/getMapCenterLocation'
 import KakaoMap from '../components/map/KakaoMap'
 import StoreMarker from '../components/map/StoreMarker'
 import BottomSheet from '../components/sheet/BottomSheet'
@@ -19,8 +21,14 @@ export default function MapPage() {
   const [map, setMap] = useState<kakao.maps.Map | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   const [showReport, setShowReport] = useState(false)
+  const [searchCenter, setSearchCenter] = useState<{ lat: number; lng: number } | null>(null)
+  const [hasMapMovedSinceSearch, setHasMapMovedSinceSearch] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [isRefreshingLocation, setIsRefreshingLocation] = useState(false)
-  const { data: stores = [], isFetching } = useNearbyStores(lat, lng)
+  const toastTimeoutRef = useRef<number | null>(null)
+  const nearbyLat = searchCenter?.lat ?? lat
+  const nearbyLng = searchCenter?.lng ?? lng
+  const { data: stores = [], isFetching } = useNearbyStores(nearbyLat, nearbyLng)
 
   useEffect(() => {
     let cancelled = false
@@ -36,21 +44,74 @@ export default function MapPage() {
     }
   }, [setLocation])
 
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current !== null) {
+        window.clearTimeout(toastTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!map) return
+
+    const handleMapDragged = () => setHasMapMovedSinceSearch(true)
+
+    window.kakao.maps.event.addListener(map, 'dragend', handleMapDragged)
+
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'dragend', handleMapDragged)
+    }
+  }, [map])
+
   const handleRefreshLocation = async () => {
     setIsRefreshingLocation(true)
     setSelectedStore(null)
     setShowReport(false)
+    setSearchCenter(null)
+    setHasMapMovedSinceSearch(false)
+    setToastMessage(null)
+    if (toastTimeoutRef.current !== null) {
+      window.clearTimeout(toastTimeoutRef.current)
+      toastTimeoutRef.current = null
+    }
 
     try {
-      await refreshCurrentLocation({
+      const location = await refreshCurrentLocation({
         getLocation: getCurrentLocation,
         setLocation,
         refreshNearbyStores: () =>
           queryClient.invalidateQueries({ queryKey: ['stores', 'nearby'] }),
       })
+
+      map?.setCenter(new window.kakao.maps.LatLng(location.lat, location.lng))
+      setHasMapMovedSinceSearch(false)
     } finally {
       setIsRefreshingLocation(false)
     }
+  }
+
+  const handleSearchThisArea = () => {
+    if (!map) return
+
+    setSearchCenter(getMapCenterLocation(map))
+    setHasMapMovedSinceSearch(false)
+    setSelectedStore(null)
+    setShowReport(false)
+  }
+
+  const handleReportSuccess = () => {
+    setShowReport(false)
+    setToastMessage('혼잡도 제보가 완료되었습니다')
+
+    if (toastTimeoutRef.current !== null) {
+      window.clearTimeout(toastTimeoutRef.current)
+    }
+
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setToastMessage(null)
+      toastTimeoutRef.current = null
+    }, 2000)
   }
 
   if (lat === null || lng === null) {
@@ -75,7 +136,18 @@ export default function MapPage() {
       >
         {isRefreshingLocation || isFetching ? '갱신 중...' : '현재 위치'}
       </button>
+      {map && hasMapMovedSinceSearch && (
+        <button
+          type="button"
+          onClick={handleSearchThisArea}
+          disabled={isFetching}
+          className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-md disabled:opacity-60"
+        >
+          {isFetching ? '검색 중...' : '이 주변 검색'}
+        </button>
+      )}
       <KakaoMap lat={lat} lng={lng} onMapReady={setMap} />
+      {map && <CurrentLocationMarker map={map} lat={lat} lng={lng} />}
       {map &&
         stores.map((store) => (
           <StoreMarker
@@ -88,6 +160,14 @@ export default function MapPage() {
             }}
           />
         ))}
+      {toastMessage && (
+        <div
+          role="status"
+          className="fixed left-1/2 top-24 z-30 -translate-x-1/2 rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-lg"
+        >
+          {toastMessage}
+        </div>
+      )}
       <BottomSheet
         open={!!selectedStore && !showReport}
         onClose={() => setSelectedStore(null)}
@@ -103,10 +183,7 @@ export default function MapPage() {
         {selectedStore && (
           <ReportForm
             store={selectedStore}
-            onSuccess={() => {
-              setShowReport(false)
-              setSelectedStore(null)
-            }}
+            onSuccess={handleReportSuccess}
           />
         )}
       </BottomSheet>

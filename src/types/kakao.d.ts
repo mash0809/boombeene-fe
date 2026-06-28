@@ -18,6 +18,14 @@ declare namespace kakao {
       getPosition(): LatLng
     }
 
+    class MarkerImage {
+      constructor(src: string, size: Size)
+    }
+
+    class Size {
+      constructor(width: number, height: number)
+    }
+
     interface MapOptions {
       center: LatLng
       level: number
@@ -27,6 +35,8 @@ declare namespace kakao {
       position: LatLng
       map?: Map
       title?: string
+      image?: MarkerImage
+      zIndex?: number
     }
 
     namespace event {

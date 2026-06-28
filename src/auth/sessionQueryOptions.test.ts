@@ -11,6 +11,7 @@ test('session query does not refetch on focus and stays fresh briefly', () => {
     id: 1,
     email: 'user@example.com',
     nickname: 'user',
+    point: 0,
   }))
 
   assert.deepEqual(options.queryKey, SESSION_QUERY_KEY)
