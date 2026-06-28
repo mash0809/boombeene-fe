@@ -13,7 +13,8 @@ export interface Store {
 export interface StoreCongestion {
   storeId: number
   level: CongestionLevel | null
-  hasData: boolean
+  count: number
+  distanceMeters: number
 }
 
 export interface User {

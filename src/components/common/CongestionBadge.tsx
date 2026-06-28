@@ -14,11 +14,11 @@ const COLOR: Record<CongestionLevel, string> = {
 
 interface Props {
   level: CongestionLevel | null
-  hasData: boolean
+  count: number
 }
 
-export default function CongestionBadge({ level, hasData }: Props) {
-  if (!hasData || !level) {
+export default function CongestionBadge({ level, count }: Props) {
+  if (count === 0 || !level) {
     return <span className="text-sm text-gray-400">정보 없음</span>
   }
 

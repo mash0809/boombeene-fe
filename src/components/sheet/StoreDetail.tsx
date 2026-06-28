@@ -1,5 +1,7 @@
 import CongestionBadge from '../common/CongestionBadge'
+import { getReportDisabledMessage } from '../../congestion/reportPolicy'
 import { useCongestion } from '../../hooks/useCongestion'
+import { useLocationStore } from '../../store/locationStore'
 import type { Store } from '../../types'
 
 interface Props {
@@ -8,7 +10,10 @@ interface Props {
 }
 
 export default function StoreDetail({ store, onReport }: Props) {
-  const { data: congestion } = useCongestion(store.id)
+  const { lat, lng } = useLocationStore()
+  const { data: congestion } = useCongestion(store.id, lat, lng)
+  const reportDisabledMessage = getReportDisabledMessage(congestion?.distanceMeters)
+  const isReportDisabled = reportDisabledMessage !== null
 
   return (
     <div>
@@ -20,13 +25,20 @@ export default function StoreDetail({ store, onReport }: Props) {
         <span className="text-sm text-gray-600">최근 30분간 혼잡도</span>
         <CongestionBadge
           level={congestion?.level ?? null}
-          hasData={congestion?.hasData ?? false}
+          count={congestion?.count ?? 0}
         />
       </div>
+      <p className="mb-4 text-sm text-gray-500">
+        혼잡도 리뷰 {congestion?.count ?? 0}개
+      </p>
+      {reportDisabledMessage && (
+        <p className="mb-4 text-sm text-red-500">{reportDisabledMessage}</p>
+      )}
       <button
         type="button"
         onClick={onReport}
-        className="w-full rounded-xl bg-blue-500 py-3 font-medium text-white hover:bg-blue-600"
+        disabled={isReportDisabled}
+        className="w-full rounded-xl bg-blue-500 py-3 font-medium text-white hover:bg-blue-600 disabled:bg-gray-300 disabled:text-gray-500"
       >
         혼잡도 제보하기
       </button>
