@@ -12,7 +12,12 @@ import { useNearbyStores } from '../hooks/useNearbyStores'
 import { getCurrentLocation } from '../location/getCurrentLocation'
 import { refreshCurrentLocation } from '../location/refreshCurrentLocation'
 import { useLocationStore } from '../store/locationStore'
-import type { Store } from '../types'
+import type { Store, StoreCategory } from '../types'
+
+const STORE_CATEGORY_OPTIONS: Array<{ value: StoreCategory; label: string }> = [
+  { value: 'RESTAURANT', label: '음식점' },
+  { value: 'CAFE', label: '카페' },
+]
 
 export default function MapPage() {
   const navigate = useNavigate()
@@ -25,10 +30,11 @@ export default function MapPage() {
   const [hasMapMovedSinceSearch, setHasMapMovedSinceSearch] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [isRefreshingLocation, setIsRefreshingLocation] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<StoreCategory>('CAFE')
   const toastTimeoutRef = useRef<number | null>(null)
   const nearbyLat = searchCenter?.lat ?? lat
   const nearbyLng = searchCenter?.lng ?? lng
-  const { data: stores = [], isFetching } = useNearbyStores(nearbyLat, nearbyLng)
+  const { data: stores = [], isFetching } = useNearbyStores(nearbyLat, nearbyLng, selectedCategory)
 
   useEffect(() => {
     let cancelled = false
@@ -100,6 +106,12 @@ export default function MapPage() {
     setShowReport(false)
   }
 
+  const handleCategoryChange = (category: StoreCategory) => {
+    setSelectedCategory(category)
+    setSelectedStore(null)
+    setShowReport(false)
+  }
+
   const handleReportSuccess = () => {
     setShowReport(false)
     setToastMessage('혼잡도 제보가 완료되었습니다')
@@ -136,6 +148,25 @@ export default function MapPage() {
       >
         {isRefreshingLocation || isFetching ? '갱신 중...' : '현재 위치'}
       </button>
+      <div className="absolute left-4 top-16 z-10 flex rounded-full bg-white p-1 shadow-md">
+        {STORE_CATEGORY_OPTIONS.map((option) => {
+          const isSelected = selectedCategory === option.value
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleCategoryChange(option.value)}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                isSelected ? 'bg-gray-900 text-white' : 'text-gray-600'
+              }`}
+              aria-pressed={isSelected}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
       {map && hasMapMovedSinceSearch && (
         <button
           type="button"
