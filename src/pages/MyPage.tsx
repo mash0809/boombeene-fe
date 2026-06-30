@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { logout } from '../api/auth'
 import { useMe } from '../hooks/useMe'
+import { usePointBalance } from '../hooks/usePointBalance'
 import { useAuthStore } from '../store/authStore'
 
 export default function MyPage() {
   const navigate = useNavigate()
   const setLoggedIn = useAuthStore((s) => s.setLoggedIn)
   const { data: user } = useMe()
+  const { data: pointBalance } = usePointBalance()
 
   const handleLogout = async () => {
     await logout()
@@ -36,7 +38,7 @@ export default function MyPage() {
         <div className="mb-6 rounded-2xl bg-white p-4 shadow">
           <p className="mb-1 text-sm text-gray-500">보유 포인트</p>
           <p className="text-2xl font-bold text-blue-600">
-            {user?.point?.toLocaleString() ?? '-'} P
+            {pointBalance?.balance.toLocaleString() ?? '-'} P
           </p>
         </div>
         <button
